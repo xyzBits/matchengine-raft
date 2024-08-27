@@ -1,4 +1,5 @@
 mod test_cluster;
+mod test_match;
 
 use std::sync::Arc;
 use openraft::StorageError;
