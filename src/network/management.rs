@@ -50,10 +50,13 @@ pub async fn change_membership(
 #[post("/init")]
 pub async fn init(app: Data<ExampleApp>) -> actix_web::Result<impl Responder> {
     let mut nodes = BTreeMap::new();
-    nodes.insert(app.id, Node {
-        addr: app.addr.clone(),
-        data: Default::default(),
-    });
+    nodes.insert(
+        app.id,
+        Node {
+            addr: app.addr.clone(),
+            data: Default::default(),
+        },
+    );
     let res = app.raft.initialize(nodes).await;
     Ok(Json(res))
 }

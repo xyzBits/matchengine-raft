@@ -23,6 +23,10 @@ actix-web = "4.0.0-rc.2"
 async-trait = "0.1.36"
 clap = { version = "3.0.13", features = ["derive", "env"] }
 env_logger = "0.9.0"
+# rev git 提交时的 hash 值，保证代码的稳定和可靠，将依赖锁定在历史上的某一个瞬间
+# 历史版本的记录地址：
+# https://github.com/datafuselabs/openraft/tree/2262c79f5195307402e7a0994771b4152c0d10b2
+# git checkout 2262c79f5195307402e7a0994771b4152c0d10b2 本地检出该版本代码进行编译
 openraft = { git = "https://github.com/datafuselabs/openraft", rev = "2262c79f5195307402e7a0994771b4152c0d10b2" }
 reqwest = { version = "0.11.9", features = ["json"] }
 serde = { version="1.0.114", features=["derive"] }

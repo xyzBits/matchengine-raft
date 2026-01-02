@@ -8,7 +8,7 @@ pub struct Config {
     /// The application specific name of this Raft cluster
     #[clap(long, env = "RAFT_SNAPSHOT_PATH", default_value = "/tmp/snapshot")]
     pub snapshot_path: String,
-    
+
     #[clap(long, env = "RAFT_INSTANCE_PREFIX", default_value = "match")]
     pub instance_prefix: String,
 

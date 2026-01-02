@@ -1,7 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
-use serde::{Serialize, Deserialize};
-
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum OrderSide {
@@ -34,7 +33,7 @@ pub struct Order {
 }
 
 impl Order {
-    pub fn new(side: OrderSide, price: f64, size: f64,sequance: u64) -> Self {
+    pub fn new(side: OrderSide, price: f64, size: f64, sequance: u64) -> Self {
         Self {
             id: 0,
             side: side,
@@ -55,7 +54,7 @@ impl PartialEq for Order {
 }
 impl Eq for Order {}
 
-#[derive(Debug, Clone, Copy,Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct BidKey {
     pub price: f64,
     pub sequance: u64,
@@ -97,10 +96,10 @@ impl PartialOrd for BidKey {
     }
 }
 
-#[derive(Debug, Clone, Copy,Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct AskKey {
-    pub price : f64,
-    pub sequance : u64,
+    pub price: f64,
+    pub sequance: u64,
 }
 
 impl PartialEq for AskKey {
@@ -138,7 +137,6 @@ impl PartialOrd for AskKey {
         Some(self.cmp(&other))
     }
 }
-
 
 pub mod vectorize {
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -186,10 +184,11 @@ pub struct MatchResult {
 
 impl PartialEq for MatchResult {
     fn eq(&self, other: &Self) -> bool {
-        (self.taker == other.taker) && (self.maker == other.maker) && (self.matches == other.matches)
+        (self.taker == other.taker)
+            && (self.maker == other.maker)
+            && (self.matches == other.matches)
     }
 }
-
 
 impl MatchResult {
     /// creates new matchresult
@@ -216,7 +215,7 @@ impl OrderBook {
     pub fn best_bid(&self) -> Option<&Order> {
         match self.bids.iter().next() {
             None => None,
-            Some((_key,value)) => Some(value),
+            Some((_key, value)) => Some(value),
         }
     }
 
@@ -224,7 +223,7 @@ impl OrderBook {
     pub fn best_ask(&self) -> Option<&Order> {
         match self.asks.iter().next() {
             None => None,
-            Some((_key,value)) => Some(value),
+            Some((_key, value)) => Some(value),
         }
     }
 
@@ -233,10 +232,22 @@ impl OrderBook {
         //tracing::debug!("insert_order: {:?})", order);
         match order.side {
             OrderSide::Buy => {
-                self.bids.insert(BidKey{price: order.price, sequance: order.sequance}, order.clone());
+                self.bids.insert(
+                    BidKey {
+                        price: order.price,
+                        sequance: order.sequance,
+                    },
+                    order.clone(),
+                );
             }
             OrderSide::Sell => {
-                self.asks.insert(AskKey{price: order.price, sequance: order.sequance}, order.clone());
+                self.asks.insert(
+                    AskKey {
+                        price: order.price,
+                        sequance: order.sequance,
+                    },
+                    order.clone(),
+                );
             }
         }
     }
@@ -257,32 +268,45 @@ impl OrderBook {
         }
     }
 
-    pub fn cancle(&mut self, order: &Order) -> Option<Order>{
+    pub fn cancle(&mut self, order: &Order) -> Option<Order> {
         match order.side {
             OrderSide::Buy => {
-                let key = BidKey{price: order.price,sequance: order.sequance};
+                let key = BidKey {
+                    price: order.price,
+                    sequance: order.sequance,
+                };
                 return self.bids.remove(&key);
             }
             OrderSide::Sell => {
-                let key = AskKey{price: order.price,sequance: order.sequance};
+                let key = AskKey {
+                    price: order.price,
+                    sequance: order.sequance,
+                };
                 return self.asks.remove(&key);
             }
-        }      
+        }
     }
 
     fn match_bid_order(&mut self, order: &Order) -> Vec<MatchResult> {
         match self.asks.iter().next() {
             None => {
-                self.bids.insert( 
-                    BidKey{price: order.price,sequance:order.sequance}, 
-                    order.clone() );
+                self.bids.insert(
+                    BidKey {
+                        price: order.price,
+                        sequance: order.sequance,
+                    },
+                    order.clone(),
+                );
                 return vec![];
             }
             Some((key, best_ask)) => {
                 if best_ask.price > order.price {
                     self.bids.insert(
-                        BidKey{ price: order.price, sequance: order.sequance },
-                        order.clone()
+                        BidKey {
+                            price: order.price,
+                            sequance: order.sequance,
+                        },
+                        order.clone(),
                     );
                     return vec![];
                 } else {
@@ -299,22 +323,32 @@ impl OrderBook {
                                 best_ask.sequance,
                             );
                             self.asks.insert(
-                                AskKey{ price: new_best_ask.price, sequance: new_best_ask.sequance},
-                                new_best_ask
+                                AskKey {
+                                    price: new_best_ask.price,
+                                    sequance: new_best_ask.sequance,
+                                },
+                                new_best_ask,
                             );
                         } else {
-                            let akey = AskKey{price:key.price, sequance:key.sequance};
+                            let akey = AskKey {
+                                price: key.price,
+                                sequance: key.sequance,
+                            };
                             self.asks.remove(&akey);
                         }
                         return vec![mr];
                     } else {
                         let mut mrs = vec![MatchResult::new(order, &best_ask, best_ask.volume)];
                         let new_order = Order::new(
-                                order.side,
-                                order.price, 
-                                order.volume - best_ask.volume, 
-                                order.sequance);
-                        let akey = AskKey{price:key.price, sequance:key.sequance};
+                            order.side,
+                            order.price,
+                            order.volume - best_ask.volume,
+                            order.sequance,
+                        );
+                        let akey = AskKey {
+                            price: key.price,
+                            sequance: key.sequance,
+                        };
                         self.asks.remove(&akey);
                         // Recursion
                         let mut new_mrs = self.match_bid_order(&new_order);
@@ -330,16 +364,22 @@ impl OrderBook {
         match self.bids.iter().next() {
             None => {
                 self.asks.insert(
-                    AskKey{price: order.price, sequance: order.sequance},
-                    order.clone()
+                    AskKey {
+                        price: order.price,
+                        sequance: order.sequance,
+                    },
+                    order.clone(),
                 );
                 return vec![];
             }
             Some((key, best_bid)) => {
                 if best_bid.price < order.price {
                     self.asks.insert(
-                        AskKey{price: order.price, sequance: order.sequance},
-                        order.clone()
+                        AskKey {
+                            price: order.price,
+                            sequance: order.sequance,
+                        },
+                        order.clone(),
                     );
                     return vec![];
                 } else {
@@ -355,11 +395,18 @@ impl OrderBook {
                                 best_bid.volume - matches,
                                 best_bid.sequance,
                             );
-                            self.bids.insert(BidKey{price: new_best_bid.price, sequance: new_best_bid.sequance},
-                                new_best_bid
+                            self.bids.insert(
+                                BidKey {
+                                    price: new_best_bid.price,
+                                    sequance: new_best_bid.sequance,
+                                },
+                                new_best_bid,
                             );
                         } else {
-                            let akey = BidKey{price:key.price, sequance:key.sequance};
+                            let akey = BidKey {
+                                price: key.price,
+                                sequance: key.sequance,
+                            };
                             self.bids.remove(&akey);
                         }
                         return vec![mr];
@@ -367,10 +414,14 @@ impl OrderBook {
                         let mut mrs = vec![MatchResult::new(order, &best_bid, best_bid.volume)];
                         let new_order = Order::new(
                             order.side,
-                            order.price, 
-                            order.volume - best_bid.volume, 
-                            order.sequance);
-                        let akey = BidKey{price:key.price, sequance:key.sequance};
+                            order.price,
+                            order.volume - best_bid.volume,
+                            order.sequance,
+                        );
+                        let akey = BidKey {
+                            price: key.price,
+                            sequance: key.sequance,
+                        };
                         self.bids.remove(&akey);
                         let mut new_mrs = self.match_ask_order(&new_order);
                         mrs.append(&mut new_mrs);
@@ -405,10 +456,10 @@ mod tests {
     #[test]
     fn basic_best_ask() {
         let mut ob = OrderBook::new();
-        let mut o1 = Order::new(OrderSide::Sell,100.22, 20.0, 1);
-        let mut o2 = Order::new(OrderSide::Sell,100.22, 20.0, 2);
-        let mut o3 = Order::new(OrderSide::Sell,100.24, 20.0, 3);
-        let mut o4 = Order::new(OrderSide::Sell,100.20, 20.0, 4);
+        let mut o1 = Order::new(OrderSide::Sell, 100.22, 20.0, 1);
+        let mut o2 = Order::new(OrderSide::Sell, 100.22, 20.0, 2);
+        let mut o3 = Order::new(OrderSide::Sell, 100.24, 20.0, 3);
+        let mut o4 = Order::new(OrderSide::Sell, 100.20, 20.0, 4);
 
         ob.place_order(&mut o1);
         assert_eq!(ob.best_ask(), Some(&o1));
@@ -435,10 +486,9 @@ mod tests {
         /*
         let serialized = serde_json::to_string(&ob).unwrap();
         println!("serialized = {}", serialized);
-    
+
         let deserialized: OrderBook = serde_json::from_str(&serialized).unwrap();
         println!("deserialized = {:?}", deserialized);
         */
     }
-
 }

@@ -1,10 +1,10 @@
 mod test_cluster;
 
-use std::sync::Arc;
-use openraft::StorageError;
-use openraft::testing::Suite;
 use example_raft_key_value::store::ExampleStore;
 use example_raft_key_value::ExampleNodeId;
+use openraft::testing::Suite;
+use openraft::StorageError;
+use std::sync::Arc;
 
 pub async fn new_async() -> Arc<ExampleStore> {
     let res = ExampleStore::open_create(0);
