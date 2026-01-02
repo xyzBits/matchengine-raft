@@ -36,11 +36,12 @@ impl ExampleNetwork {
         }
     }
 
+    /// 构造通用的 http 请求
     pub async fn send_rpc<Req, Resp, Err>(
         &mut self,
         target: ExampleNodeId,
         target_node: Option<&Node>,
-        uri: &str,
+        uri: &str,// 传入的 raft-vote 等字符串
         req: Req,
     ) -> Result<Resp, RPCError<ExampleTypeConfig, Err>>
     where
@@ -48,17 +49,23 @@ impl ExampleNetwork {
         Err: std::error::Error + DeserializeOwned,
         Resp: DeserializeOwned,
     {
+
+        // 获取目标 ip 地址
         let addr = target_node.map(|x| &x.addr).unwrap();
 
+        // 拼接最终 url
+        // http:://127.0.0.1:8001/raft-vote
         let url = format!("http://{}/{}", addr, uri);
 
+        // 获取  client 
         let clients = Arc::get_mut(&mut self.clients).unwrap();
 
         let client = clients.entry(url.clone()).or_insert(reqwest::Client::new());
 
+        // 发送 http post 
         let resp = client
             .post(url)
-            .json(&req)
+            .json(&req)// 把 rust 结构体序列化为 json
             .send()
             .await
             .map_err(|e| RPCError::Network(NetworkError::new(&e)))?;

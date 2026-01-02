@@ -93,11 +93,21 @@ pub struct StateMachineContent {
  * a implementation to be serialized. Note that for this test we set both the key and
  * value as String, but you could set any type of value that has the serialization impl.
  */
+
+ /// 业务状态机的最终形态
+ /// raft 中，log 是动作的过程，state machine 是动作的结果，也就是现在的状态
+ /// 每当 raft 达成共识一条日志，就会把这条日志的内容应用 apply 到这个结构体上，从而改变里面的值
+ /// 这就是一个内存数据库 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct ExampleStateMachine {
+    // 不是业务数据，而是 openraft 框架要求状态机必须维护的 记账信息
+    // 最后一条被应用到这晨的日志 id
+    // 防重与断点续传 
+    // 当节点重启恢复快照后，它需要知道自己到底执行到了第几步
     pub last_applied_log: Option<LogId<ExampleNodeId>>,
 
     // TODO: it should not be Option.
+    // 当前的集群成员配置，谁是 voter 谁是 learner 
     pub last_membership: EffectiveMembership<ExampleNodeId>,
 
     /// Application data.
